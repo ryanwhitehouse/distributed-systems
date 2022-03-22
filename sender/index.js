@@ -34,10 +34,9 @@ io.on('connection', async (socket) => {
         }
     })
 
-
     setInterval(() => {
             socket.emit('message-from-server-to-failover', current);
-    }, 25)
+    }, 23)
 
     setInterval(() => {
         socket.emit('message-from-server-to-client', {

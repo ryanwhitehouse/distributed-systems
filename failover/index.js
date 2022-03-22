@@ -8,7 +8,6 @@ let localCurrent = 0
 let serverCurrent = 0
 let lastCall = Date.now()
 
-
 app.use(cors({ origin: 'http://localhost:3000' }))
 
 const server = app.listen(8001, console.log("Waiting for receiver at http://localhost:8001/"));
@@ -26,8 +25,6 @@ const nodeID = '999'
 const socket = socketIOClient(ENDPOINT);
 
 socket.on('message-from-server-to-failover', data => {
-    console.log(data);
-
     serverCurrent = data
     localCurrent = data
 
@@ -41,25 +38,28 @@ socket.on('connection', () => {
 });
 
 io.on('connection', async (socket) => {
-    console.log('connected!');
+    console.log('connected')
     socket.on('message-from-client-to-server', (msg) => {
         console.log('received!');
         console.log(msg);
     })
 
-    setInterval(() => {
+    const myInterval = setInterval(() => {
         if (Date.now() - lastCall > 35) {
-            console.log('taking over')
-            socket.emit('message-from-failover-to-client', {
-                count: localCurrent,
-                appID,
-                nodeID
-            });
-
             socket.emit('message-from-failover-to-server', 'TakenOver');
-            console.log({localCurrent})
+            console.log('taken over')
+            
+            clearInterval(myInterval)
+            
+            setInterval(() => { 
+                socket.emit('message-from-failover-to-client', {
+                    count: localCurrent,
+                    appID,
+                    nodeID
+                });
+            }, 1000)
         }
-    }, 20)  
+    }, 23)  
 });
 
 setInterval(() => { localCurrent ++ }, 1000)
